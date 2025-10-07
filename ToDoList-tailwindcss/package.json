@@ -1,0 +1,17 @@
+{
+  "name": "todolist-tailwindcss",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tailwindcss -i ./src/input.css -o ./public/tailwind.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./public/tailwind.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^4.1.14"
+  }
+}

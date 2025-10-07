@@ -18,7 +18,7 @@ const toLocalInputValue = (d)=>{
 };
 const esc = (s='') => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
-// UI helpers
+// UI
 const prioText = p => ['Baja','Media','Alta'][p ?? 0];
 const prioBadge = (p) => {
   const base = "px-2 py-0.5 rounded-md text-xs font-semibold";

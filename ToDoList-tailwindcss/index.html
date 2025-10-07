@@ -6,27 +6,22 @@
   <title>ToDoList — Tailwind</title>
 
   <script>
-    window.tailwind = {
-      config: {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              bg:     "#FAF8F1",
-              panel:  "#FAEAB1",
-              text:   "#334443",
-              muted:  "#34656D",
-              border: "#34656D",
-              danger: "#b91c1c",
-            },
-            boxShadow: { soft: "0 2px 6px rgba(51,68,67,.2)" },
-            borderRadius: { xl: "12px" }
-          }
+  window.tailwind = {
+    config: {
+      theme: {
+        extend: {
+          colors: {
+            bg:"#FAF8F1", panel:"#FAEAB1", text:"#334443",
+            muted:"#34656D", border:"#34656D", danger:"#b91c1c"
+          },
+          boxShadow:{ soft:"0 2px 6px rgba(51,68,67,.2)" },
+          borderRadius:{ xl:"12px" }
         }
       }
-    };
-  </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+    }
+  };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="min-h-screen bg-bg text-text dark:bg-zinc-900 dark:text-zinc-100">
