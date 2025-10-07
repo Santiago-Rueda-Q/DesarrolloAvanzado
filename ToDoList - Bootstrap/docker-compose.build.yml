@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  todos-bootstrap:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: xxmadonixx/todos-bootstrap:latest
+    ports:
+      - "8082:80"
+    restart: unless-stopped
