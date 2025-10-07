@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ToDoList — Tailwind</title>
+
+  <!-- Config de Tailwind CDN: colores y container -->
+  <script>
+    tailwind = {
+      theme: {
+        extend: {
+          colors: {
+            bg:     "#FAF8F1",
+            panel:  "#FAEAB1",
+            text:   "#334443",
+            muted:  "#34656D",
+            border: "#34656D",
+            danger: "#b91c1c"
+          },
+          boxShadow: {
+            soft: "0 2px 6px rgba(51,68,67,.2)"
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-bg text-text">
+  <main class="max-w-[960px] mx-auto my-8 px-4">
+    <h1 class="text-xl font-semibold mb-3">ToDoList — Tailwind</h1>
+
+    <!-- FORM CREAR -->
+    <form id="form-create" autocomplete="off"
+          class="bg-panel border border-border rounded-xl shadow-soft p-3 mb-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+        <input id="title" placeholder="Título (requerido)" required
+               class="w-full border border-border rounded-md bg-white text-text px-3 py-2 outline-none focus:border-text focus:ring-1 focus:ring-text md:col-span-2 lg:col-span-2" />
+        <select id="priority"
+                class="w-full border border-border rounded-md bg-white text-text px-3 py-2 outline-none focus:border-text focus:ring-1 focus:ring-text">
+          <option value="0">Baja</option>
+          <option value="1">Media</option>
+          <option value="2">Alta</option>
+        </select>
+        <input id="dueAt" type="datetime-local"
+               class="w-full border border-border rounded-md bg-white text-text px-3 py-2 outline-none focus:border-text focus:ring-1 focus:ring-text" />
+        <div class="md:col-span-2 lg:col-span-4">
+          <textarea id="description" placeholder="Descripción (opcional)"
+                    class="w-full border border-border rounded-md bg-white text-text px-3 py-2 outline-none focus:border-text focus:ring-1 focus:ring-text min-h-[5rem] max-h-[10rem] resize-y"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-3">
+        <button type="submit"
+                class="px-3 py-2 rounded-md border border-border bg-panel text-text font-semibold hover:opacity-90">
+          Crear
+        </button>
+        <button type="button" id="btn-refresh"
+                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-white/40">
+          Actualizar
+        </button>
+      </div>
+    </form>
+
+    <!-- CONSULTA POR ID -->
+    <section class="bg-panel border border-border rounded-xl shadow-soft p-3 mb-3">
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-2">
+        <input id="byId" type="number" min="1"
+               class="w-full border border-border rounded-md bg-white text-text px-3 py-2 outline-none focus:border-text focus:ring-1 focus:ring-text"
+               placeholder="ID a consultar (ej. 1)" />
+        <button id="btn-get-one" type="button"
+                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-white/40">
+          Consultar por ID
+        </button>
+        <button id="btn-clear-one" type="button"
+                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-white/40">
+          Limpiar
+        </button>
+      </div>
+      <pre id="one-result"
+           class="mt-3 bg-white border border-border rounded-md p-2 text-black overflow-auto"></pre>
+    </section>
+
+    <!-- LISTA -->
+    <section id="list" class="bg-panel border border-border rounded-xl shadow-soft p-0">Cargando…</section>
+    <p id="count" class="text-muted mt-2"></p>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

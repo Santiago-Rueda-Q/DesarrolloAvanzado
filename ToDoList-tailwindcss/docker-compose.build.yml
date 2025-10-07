@@ -3,7 +3,6 @@ services:
   todos-tailwind:
     build:
       context: .
-      dockerfile: Dockerfile
     image: xxmadonixx/todos-tailwind:latest
     ports:
       - "8083:80"

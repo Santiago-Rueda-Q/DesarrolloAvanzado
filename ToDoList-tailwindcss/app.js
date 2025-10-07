@@ -75,25 +75,31 @@ async function deleteTodo(id){
 function render(){
   const cont = $('#list');
   if(!todos.length){
-    cont.innerHTML = '<div class="empty">Sin tareas.</div>';
+    cont.innerHTML = '<div class="text-muted p-4 text-center">Sin tareas.</div>';
     $('#count').textContent = '0 tareas';
     return;
   }
 
   cont.innerHTML = todos.map(t => `
-    <article class="item" data-id="${t.id}">
-      <div class="id-tag">#${t.id}</div>
-      <div class="item-main">
-        <strong>${esc(t.title || '')}</strong>
-        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
-        <small class="muted">
+    <article class="grid grid-cols-[60px_1fr_auto] gap-3 items-center p-3 border-t first:border-t-0 border-border" data-id="${t.id}">
+      <div class="font-bold text-muted text-center">#${t.id}</div>
+      <div>
+        <strong class="block">${esc(t.title || '')}</strong>
+        ${t.description ? `<div class="mt-1 text-muted">${esc(t.description)}</div>` : ''}
+        <small class="text-muted">
           Prioridad: ${['Baja','Media','Alta'][t.priority ?? 0]} ·
           Vence: ${t.dueAt ? new Date(t.dueAt).toLocaleString() : '—'}
         </small>
       </div>
-      <div class="actions">
-        <button class="secondary btn-edit">Editar</button>
-        <button class="danger btn-del">Eliminar</button>
+      <div class="flex gap-2 justify-end">
+        <button data-action="edit"
+                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-white/40">
+          Editar
+        </button>
+        <button data-action="del"
+                class="px-3 py-2 rounded-md border border-transparent bg-danger text-white font-semibold hover:opacity-90">
+          Eliminar
+        </button>
       </div>
     </article>
   `).join('');
@@ -135,19 +141,25 @@ $('#btn-get-one').addEventListener('click', async ()=>{
     out.textContent = 'No encontrado o error en la consulta.';
   }
 });
+
 $('#btn-clear-one').addEventListener('click', ()=>{
   $('#byId').value = '';
   $('#one-result').textContent = '';
 });
 
+// Delegación en lista por data-action (sin clases de estilo)
 $('#list').addEventListener('click', async (e)=>{
-  const item = e.target.closest('.item');
-  if(!item) return;
+  const actionBtn = e.target.closest('[data-action]');
+  const item = e.target.closest('[data-id]');
+  if(!actionBtn || !item) return;
+
   const id = Number(item.dataset.id);
   const t  = todos.find(x => x.id === id);
   if(!t) return;
 
-  if(e.target.classList.contains('btn-del')){
+  const action = actionBtn.dataset.action;
+
+  if(action === 'del'){
     if(!confirm('¿Eliminar?')) return;
     try{
       await deleteTodo(id);
@@ -156,7 +168,7 @@ $('#list').addEventListener('click', async (e)=>{
     }catch{ alert('No se pudo eliminar.'); }
   }
 
-  if(e.target.classList.contains('btn-edit')){
+  if(action === 'edit'){
     const title = prompt('Título:', t.title ?? '')?.trim();
     if(!title) return;
     const description = prompt('Descripción:', t.description ?? '') ?? '';

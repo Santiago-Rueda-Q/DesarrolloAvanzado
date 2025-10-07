@@ -20,17 +20,44 @@ const toLocalInputValue = (d)=>{
 };
 const esc = (s='') => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
+const fmtDate = iso => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  // Muestra fecha y hora local legible
+  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
+};
+
+// Badges de prioridad (Bootstrap)
+const priorityLabel = p => ['Baja','Media','Alta'][p ?? 0];
+const priorityBadgeClass = p => {
+  const v = Number(p ?? 0);
+  // success (baja), warning (media), danger (alta)
+  return ['text-bg-success','text-bg-warning','text-bg-danger'][v] || 'text-bg-secondary';
+};
+
 // === Estado ===
 let todos = [];
 
 // === CRUD ===
 async function getAll(){
-  $('#list').textContent = 'Cargando…';
-  const res  = await fetch(API, { headers:{ Accept:'text/plain' }});
-  const data = await parseResponse(res);
-  if(!res.ok || !Array.isArray(data?.data)) throw new Error('Listado inválido');
-  todos = data.data;
-  render();
+  const cont = $('#list');
+  cont.innerHTML = `
+    <div class="list-group-item d-flex align-items-center gap-2">
+      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      <span>Cargando…</span>
+    </div>`;
+  try{
+    const res  = await fetch(API, { headers:{ Accept:'text/plain' }});
+    const data = await parseResponse(res);
+    if(!res.ok || !Array.isArray(data?.data)) throw new Error('Listado inválido');
+    todos = data.data;
+    render();
+  }catch(e){
+    cont.innerHTML = `
+      <div class="list-group-item text-danger">Error al cargar la lista.</div>
+    `;
+    $('#count').textContent = '';
+  }
 }
 
 async function getOne(id){
@@ -74,31 +101,57 @@ async function deleteTodo(id){
 // === Render ===
 function render(){
   const cont = $('#list');
+  cont.classList.add('list-group','shadow-sm'); // asegurar estilos bootstrap
+
   if(!todos.length){
-    cont.innerHTML = '<div class="empty">Sin tareas.</div>';
+    cont.innerHTML = `
+      <div class="list-group-item text-muted text-center py-3">Sin tareas.</div>
+    `;
     $('#count').textContent = '0 tareas';
     return;
   }
 
-  cont.innerHTML = todos.map(t => `
-    <article class="item" data-id="${t.id}">
-      <div class="id-tag">#${t.id}</div>
-      <div class="item-main">
-        <strong>${esc(t.title || '')}</strong>
-        ${t.description ? `<div class="desc">${esc(t.description)}</div>` : ''}
-        <small class="muted">
-          Prioridad: ${['Baja','Media','Alta'][t.priority ?? 0]} ·
-          Vence: ${t.dueAt ? new Date(t.dueAt).toLocaleString() : '—'}
-        </small>
+  cont.innerHTML = todos.map(t => {
+    const badgeCls = priorityBadgeClass(t.priority);
+    return `
+      <div class="list-group-item d-grid gap-3 align-items-center" data-id="${t.id}"
+           style="grid-template-columns: 60px 1fr auto;">
+        <!-- ID -->
+        <div class="fw-bold text-secondary text-center id-tag">#${t.id}</div>
+
+        <!-- Contenido -->
+        <div class="min-w-0">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <strong class="text-break">${esc(t.title || '')}</strong>
+            <span class="badge ${badgeCls}">
+              ${priorityLabel(t.priority)}
+            </span>
+          </div>
+          ${t.description ? `<div class="small text-muted desc mt-1 text-break">${esc(t.description)}</div>` : ''}
+          <div class="small text-muted mt-1">
+            Vence: ${fmtDate(t.dueAt)}
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="d-flex align-items-center justify-content-end gap-2 actions">
+          <button class="btn btn-sm btn-outline-primary btn-edit">Editar</button>
+          <button class="btn btn-sm btn-outline-danger btn-del">Eliminar</button>
+        </div>
       </div>
-      <div class="actions">
-        <button class="secondary btn-edit">Editar</button>
-        <button class="danger btn-del">Eliminar</button>
-      </div>
-    </article>
-  `).join('');
+    `;
+  }).join('');
 
   $('#count').textContent = `${todos.length} ${todos.length===1?'tarea':'tareas'}`;
+
+  // Responsivo: en pantallas pequeñas, mover acciones a la segunda columna
+  if (window.matchMedia('(max-width: 760px)').matches) {
+    cont.querySelectorAll('.list-group-item').forEach(item=>{
+      item.style.gridTemplateColumns = '50px 1fr';
+      const actions = item.querySelector('.actions');
+      if (actions) actions.style.gridColumn = '2 / 3';
+    });
+  }
 }
 
 // === Eventos ===
@@ -111,6 +164,7 @@ $('#form-create').addEventListener('submit', async (e)=>{
     dueAt:       toISO($('#dueAt').value)
   };
   if(!payload.title){ alert('El título es obligatorio'); return; }
+
   try{
     const created = await createTodo(payload);
     todos.unshift(created);
@@ -118,7 +172,9 @@ $('#form-create').addEventListener('submit', async (e)=>{
     const next = new Date(); next.setMinutes(next.getMinutes()+60);
     $('#dueAt').value = toLocalInputValue(next);
     render();
-  }catch{ alert('No se pudo crear.'); }
+  }catch{
+    alert('No se pudo crear.');
+  }
 });
 
 $('#btn-refresh').addEventListener('click', getAll);
@@ -135,13 +191,14 @@ $('#btn-get-one').addEventListener('click', async ()=>{
     out.textContent = 'No encontrado o error en la consulta.';
   }
 });
+
 $('#btn-clear-one').addEventListener('click', ()=>{
   $('#byId').value = '';
   $('#one-result').textContent = '';
 });
 
 $('#list').addEventListener('click', async (e)=>{
-  const item = e.target.closest('.item');
+  const item = e.target.closest('.list-group-item');
   if(!item) return;
   const id = Number(item.dataset.id);
   const t  = todos.find(x => x.id === id);
@@ -153,7 +210,9 @@ $('#list').addEventListener('click', async (e)=>{
       await deleteTodo(id);
       todos = todos.filter(x => x.id !== id);
       render();
-    }catch{ alert('No se pudo eliminar.'); }
+    }catch{
+      alert('No se pudo eliminar.');
+    }
   }
 
   if(e.target.classList.contains('btn-edit')){
@@ -162,14 +221,17 @@ $('#list').addEventListener('click', async (e)=>{
     const description = prompt('Descripción:', t.description ?? '') ?? '';
     try{
       const updated = await updateTodo(id, {
-        title, description,
+        title,
+        description,
         isCompleted: t.isCompleted ?? false,
         priority: t.priority ?? 0,
         dueAt: t.dueAt ?? null
       });
       Object.assign(t, updated);
       render();
-    }catch{ alert('No se pudo actualizar.'); }
+    }catch{
+      alert('No se pudo actualizar.');
+    }
   }
 });
 

@@ -1,9 +1,6 @@
 version: "3.9"
 services:
   todos-css:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: xxmadonixx/todos-css:latest
     ports:
       - "8081:80"
