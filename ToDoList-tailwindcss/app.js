@@ -1,7 +1,5 @@
-// === Config ===
 const API = 'https://todoapitest.juansegaliz.com/todos';
 
-// === Helpers ===
 const $ = s => document.querySelector(s);
 const parseResponse = async (res) => {
   const txt = await res.text();
@@ -19,6 +17,15 @@ const toLocalInputValue = (d)=>{
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 const esc = (s='') => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+
+// UI helpers
+const prioText = p => ['Baja','Media','Alta'][p ?? 0];
+const prioBadge = (p) => {
+  const base = "px-2 py-0.5 rounded-md text-xs font-semibold";
+  if (p === 2) return `${base} bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300`;
+  if (p === 1) return `${base} bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300`;
+  return `${base} bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300`;
+};
 
 // === Estado ===
 let todos = [];
@@ -75,29 +82,37 @@ async function deleteTodo(id){
 function render(){
   const cont = $('#list');
   if(!todos.length){
-    cont.innerHTML = '<div class="text-muted p-4 text-center">Sin tareas.</div>';
+    cont.innerHTML = '<div class="p-4 text-center text-muted">Sin tareas.</div>';
     $('#count').textContent = '0 tareas';
     return;
   }
 
   cont.innerHTML = todos.map(t => `
-    <article class="grid grid-cols-[60px_1fr_auto] gap-3 items-center p-3 border-t first:border-t-0 border-border" data-id="${t.id}">
-      <div class="font-bold text-muted text-center">#${t.id}</div>
-      <div>
-        <strong class="block">${esc(t.title || '')}</strong>
-        ${t.description ? `<div class="mt-1 text-muted">${esc(t.description)}</div>` : ''}
-        <small class="text-muted">
-          Prioridad: ${['Baja','Media','Alta'][t.priority ?? 0]} ·
-          Vence: ${t.dueAt ? new Date(t.dueAt).toLocaleString() : '—'}
-        </small>
+    <article class="grid grid-cols-[64px_1fr_auto] gap-4 items-center p-4 hover:bg-white/40 transition dark:hover:bg-zinc-700/40" data-id="${t.id}">
+      <!-- ID -->
+      <div class="text-center">
+        <div class="text-sm text-muted font-semibold">ID</div>
+        <div class="text-xl font-extrabold text-muted">#${t.id}</div>
       </div>
+
+      <!-- Main -->
+      <div class="min-w-0">
+        <div class="flex items-center gap-3 flex-wrap">
+          <strong class="text-lg truncate">${esc(t.title || '')}</strong>
+          <span class="${prioBadge(t.priority)}">${prioText(t.priority)}</span>
+          <span class="text-xs text-muted">Vence: ${t.dueAt ? new Date(t.dueAt).toLocaleString() : '—'}</span>
+        </div>
+        ${t.description ? `<p class="mt-1 text-sm text-muted break-words">${esc(t.description)}</p>` : ''}
+      </div>
+
+      <!-- Actions -->
       <div class="flex gap-2 justify-end">
         <button data-action="edit"
-                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-white/40">
+                class="px-3 py-2 rounded-md border border-border bg-transparent text-text font-semibold hover:bg-border hover:text-white transition dark:border-zinc-600">
           Editar
         </button>
         <button data-action="del"
-                class="px-3 py-2 rounded-md border border-transparent bg-danger text-white font-semibold hover:opacity-90">
+                class="px-3 py-2 rounded-md bg-danger text-white font-semibold hover:opacity-90 transition">
           Eliminar
         </button>
       </div>
@@ -128,6 +143,13 @@ $('#form-create').addEventListener('submit', async (e)=>{
 });
 
 $('#btn-refresh').addEventListener('click', getAll);
+$('#btn-clear-form').addEventListener('click', ()=> {
+  $('#title').value = '';
+  $('#description').value = '';
+  $('#priority').value = '0';
+  const next = new Date(); next.setMinutes(next.getMinutes()+60);
+  $('#dueAt').value = toLocalInputValue(next);
+});
 
 $('#btn-get-one').addEventListener('click', async ()=>{
   const id = Number($('#byId').value);
@@ -141,13 +163,12 @@ $('#btn-get-one').addEventListener('click', async ()=>{
     out.textContent = 'No encontrado o error en la consulta.';
   }
 });
-
 $('#btn-clear-one').addEventListener('click', ()=>{
   $('#byId').value = '';
   $('#one-result').textContent = '';
 });
 
-// Delegación en lista por data-action (sin clases de estilo)
+// Delegación de acciones
 $('#list').addEventListener('click', async (e)=>{
   const actionBtn = e.target.closest('[data-action]');
   const item = e.target.closest('[data-id]');
