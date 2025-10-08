@@ -23,15 +23,12 @@ const esc = (s='') => s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&g
 const fmtDate = iso => {
   if (!iso) return '—';
   const d = new Date(iso);
-  // Muestra fecha y hora local legible
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
 };
 
-// Badges de prioridad (Bootstrap)
 const priorityLabel = p => ['Baja','Media','Alta'][p ?? 0];
 const priorityBadgeClass = p => {
   const v = Number(p ?? 0);
-  // success (baja), warning (media), danger (alta)
   return ['text-bg-success','text-bg-warning','text-bg-danger'][v] || 'text-bg-secondary';
 };
 
@@ -101,7 +98,7 @@ async function deleteTodo(id){
 // === Render ===
 function render(){
   const cont = $('#list');
-  cont.classList.add('list-group','shadow-sm'); // asegurar estilos bootstrap
+  cont.classList.add('list-group','shadow-sm');
 
   if(!todos.length){
     cont.innerHTML = `
@@ -115,7 +112,7 @@ function render(){
     const badgeCls = priorityBadgeClass(t.priority);
     return `
       <div class="list-group-item d-grid gap-3 align-items-center" data-id="${t.id}"
-           style="grid-template-columns: 60px 1fr auto;">
+        style="grid-template-columns: 60px 1fr auto;">
         <!-- ID -->
         <div class="fw-bold text-secondary text-center id-tag">#${t.id}</div>
 
@@ -144,7 +141,6 @@ function render(){
 
   $('#count').textContent = `${todos.length} ${todos.length===1?'tarea':'tareas'}`;
 
-  // Responsivo: en pantallas pequeñas, mover acciones a la segunda columna
   if (window.matchMedia('(max-width: 760px)').matches) {
     cont.querySelectorAll('.list-group-item').forEach(item=>{
       item.style.gridTemplateColumns = '50px 1fr';
